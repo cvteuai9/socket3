@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+
+    </div>
+    <script>
+        const ws = new WebSocket("ws://localhost:8080");
+        const userID = new Date().getTime().toString();
+        const container = document.querySelector(".container");
+        let clientList;
+
+        ws.addEventListener("open", e => {
+            let params = {
+                type: "register",
+                userID
+            }
+            ws.send(JSON.stringify(params));
+        })
+
+        ws.addEventListener("message", e => {
+            const fromServerMsg = JSON.parse(e.data);
+            console.log(fromServerMsg);
+
+            if (fromServerMsg.type === "registered") {
+                clientList = fromServerMsg.otherClients
+                setClients();
+            }
+            if (fromServerMsg.type === "disconnected") {
+                clientList = fromServerMsg.otherClients
+                setClients();
+            }
+        });
+
+
+        function setClients() {
+            let clientDOM = `<div>`
+            clientList.forEach(client => {
+                let mySelf = (userID === client) ? "mySelf" : "";
+                clientDOM += `<h3 class="${mySelf}">${client}</h3>`;
+            });
+            clientDOM += `</div>`
+            container.innerHTML = clientDOM;
+        }
+    </script>
+</body>
+
+</html>

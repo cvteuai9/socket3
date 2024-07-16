@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div>123214125125</div>
+    <div class="mySelf">123123213123</div>
+    <script>
+        const ws = new WebSocket("ws://localhost:8080");
+
+        // 利用時間戳記建立變數userID，當作使用者編號
+        const userID = new Date().getTime().toString();
+
+        // clientList 用來放置客戶端資料
+        let clientList
+
+        // 當連接上伺服器後觸發open事件
+        ws.addEventListener("open", () => {
+            console.log("新的使用者已連線");
+            let params = {
+                type: "register",
+                userID
+            }
+            // 將資訊包成陣列回傳
+            ws.send(JSON.stringify(params));
+        })
+
+        // 當有訊息傳過來時，觸發message事件
+        ws.addEventListener("message", async e => {
+            // 建立一變數result接收傳回來的資料
+            let result = JSON.parse(e.data);
+
+            // 判斷type做出相對應的動作
+            if (result.type === "registered") {
+                clientList = result.otherClients;
+                setClientList();
+            }
+
+            if (result.type === "disconnected") {
+                clientList = result.otherClients;
+                setClientList();
+            }
+        });
+
+
+        function setClientList() {
+            console.log(clientList)
+            let clientDOM = "<div>"
+            clientList.forEach(client => {
+                let mySelf = (client === userID) ? "mySelf" : "";
+                clientDOM += `<div class="${mySelf}">${client}</div>`
+            });
+            clientDOM += "</div>"
+            document.querySelector("body").innerHTML = clientDOM;
+        }
+    </script>
+</body>
+
+</html>
